@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, ValidationPipe, Query } from '@nestjs/common';
 import { MovieService } from './movie.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
@@ -8,18 +8,20 @@ export class MovieController {
   constructor(private readonly movieService: MovieService) { }
 
   @Post()
-  create(@Body() createMovieDto: CreateMovieDto) {
+  create(@Body(ValidationPipe) createMovieDto: CreateMovieDto) {
     return this.movieService.create(createMovieDto);
   }
 
   @Get()
-  findAll() {
-    return this.movieService.findAll();
+  findAll(@Query('fields') fields: string, @Query('pageno') pageNo: number = 1,
+    @Query('pagesize') pageSize: number = 10,
+    @Query('order') order: string = "") {
+    return this.movieService.findAndCountAll(pageNo, pageSize, fields, order);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.movieService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @Query('fields') fields: string) {
+    return this.movieService.findOne(id,fields);
   }
 
   @Patch(':id')

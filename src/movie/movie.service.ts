@@ -1,31 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { CreateMovieDto } from './dto/create-movie.dto';
-import { UpdateMovieDto } from './dto/update-movie.dto';
 import { MovieRepository } from 'src/database/repositories/movie.repository';
+import { BaseService } from './base.service';
+import { Movie } from 'src/database/models/movie.model';
 
 @Injectable()
-export class MovieService {
+export class MovieService extends BaseService<Movie> {
 
   constructor(private readonly movieRepository: MovieRepository) {
-  }
-
-  create(createMovieDto: CreateMovieDto) {
-    return this.movieRepository.create(createMovieDto)
-  }
-
-  findAll() {
-    return this.movieRepository.findAll();
-  }
-
-  findOne(id: number) {
-    return this.movieRepository.findOne(id);
-  }
-
-  update(id: number, updateMovieDto: UpdateMovieDto) {
-    return this.movieRepository.update(id, updateMovieDto);
-  }
-
-  remove(id: number) {
-    return this.movieRepository.delete(id);
+    super(movieRepository);
   }
 }

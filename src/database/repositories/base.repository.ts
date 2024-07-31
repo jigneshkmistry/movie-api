@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Model } from "sequelize";
+import { DestroyOptions, FindOptions, Model, WhereOptions } from "sequelize";
 import sequelize from "sequelize";
 
 @Injectable()
@@ -8,39 +8,78 @@ export class BaseRepository<M extends Model> {
     protected Model!: sequelize.ModelStatic<M>;
 
     constructor(model: sequelize.ModelStatic<M>) {
-
         this.Model = model;
     }
 
-    async createMovie(createMovie: any): Promise<M> {
+    async create(createMovie: any): Promise<M> {
         return this.Model.create(createMovie);
     }
 
-    async findAll(): Promise<{ rows: M[], count: number }> {
-        return this.Model.findAndCountAll();
+    async findAndCountAll(pageNo: number = 1, pageSize: number = 10, fields: string = "",sortOrder:string = ""): Promise<{ rows: M[], count: number }> {
+
+        const offset = pageNo === 1 ? 0 : (pageNo - 1) * pageSize;
+        const field_list = fields.split(',');
+        const sort_order: [string, 'ASC' | 'DESC'][] = sortOrder
+            ? this.convertToSortOrder(sortOrder) : this.getDefautlSortOptions();
+        //const where: WhereOptions<M> = { id } as any;
+        const options: FindOptions<M> = {
+            //where,
+            attributes: field_list as any,
+            offset : +offset,
+            limit : +pageSize,
+            order : sort_order
+        };
+
+        if (fields === "") {
+            delete options.attributes;
+        }
+
+        return this.Model.findAndCountAll(options);
     }
 
-    // async findOne(id: number): Promise<M> {
-    //     // return this.getModel().findOne({ where: { id } })
-    //     //return this.Model.findOne({ where: { id } });
-    // }
+    async findOne(id: number, fields: string = ""): Promise<M> {
 
-    public getModel(){
-        return Model;
+        const field_list = fields.split(',');
+        const where: WhereOptions<M> = { id } as any;
+        const options: FindOptions<M> = {
+            where,
+            attributes: field_list as any
+        };
+
+        if (fields === "") {
+            delete options.attributes;
+        }
+
+        return this.Model.findOne(options);
     }
 
-    // async update(id: number, updateData: Partial<M>): Promise<M> {
+    async update(id: number, updateData: Partial<M>): Promise<M> {
 
-    //     // @ts-ignore
-    //     let update_result = await this.Model.update(updateData, {
-    //         where: { id: id }
-    //     });
+        const where: WhereOptions<M> = { id } as any;
+        const [affectedCount, affectedRows] = await this.Model.update(updateData, {
+            where,
+            returning: true
+        });
+        return affectedCount > 0 ? affectedRows[0] : null;
+    }
 
-    //     return update_result && update_result.length > 0 ? update_result[1][0] : null;
-    // }
+    async delete(id: number): Promise<number> {
+        const where: WhereOptions<M> = { id } as any;
+        return this.Model.destroy({ where });
+    }
 
-    // async delete(id: number): Promise<number> {
-    //     return this.Model.destroy({ where : [id]});
-    // }
+    getDefautlSortOptions(): [string, 'ASC' | 'DESC'][] {
+        return [['id', 'DESC']]
+    }
+
+    convertToSortOrder(sortString: string): [string, 'ASC' | 'DESC'][] {
+        return sortString.split(',').map(part => {
+            const [field, order] = part.trim().split(' ');
+            if (order && order.toUpperCase() === 'DESC') {
+                return [field, 'DESC'];
+            }
+            return [field, 'ASC'];
+        }) as [string, 'ASC' | 'DESC'][];
+    }
 
 }
