@@ -1,0 +1,106 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation stack for Node.js API on EC2 with ELB
+
+Parameters:
+  InstanceType:
+    Description: EC2 instance type
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t2.medium
+    ConstraintDescription: must be a valid EC2 instance type.
+
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instances
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+
+Resources:
+  WebServerSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable HTTP access via port 80 and custom API port
+      VpcId: vpc-024c22974e4fc4a64
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          CidrIp: 0.0.0.0/0
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Subnets:
+        - subnet-0c8df9655e61b20c6
+        - subnet-08c5d83c99a568c14
+      SecurityGroups:
+        - Ref: WebServerSG
+
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthCheckPath: /api
+      HealthCheckPort: 3000
+      HealthyThresholdCount: 5
+      UnhealthyThresholdCount: 2
+      Port: 3000
+      Protocol: HTTP
+      VpcId: vpc-024c22974e4fc4a64
+      TargetType: instance
+      Targets:
+        - Id: !Ref WebServerInstance
+
+  WebServerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      SecurityGroupIds:
+        - !Ref WebServerSG
+      SubnetId: subnet-0c8df9655e61b20c6
+      ImageId: ami-0427090fd1714168b # Amazon Linux 2 AMI (replace with the latest AMI ID for your region)
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          yum update -y
+          sudo su
+          yum install -y nodejs npm
+          yum install -y git
+          git clone https://github.com/jigneshkmistry/movie-api.git /home/ec2-user/app
+          cd /home/ec2-user/app
+          npm install
+          npm run build
+          npm run start:prod
+      Tags:
+        - Key: Name
+          Value: WebServer
+
+Outputs:
+  LoadBalancerDNSName:
+    Description: DNS Name of the load balancer
+    Value: !GetAtt 
+      - LoadBalancer
+      - DNSName

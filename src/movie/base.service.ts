@@ -26,9 +26,20 @@ export abstract class BaseService<M extends sequelize.Model> {
     }
   }
 
-  update(id: number, updateMovieDto: any) {
+  async getByWhereClause(whereClause: any, fields: string = "", sortOrder: string = "") {
 
-    return this.baseRepository.update(id, updateMovieDto);
+    return this.baseRepository.getByWhereClause(whereClause, fields, sortOrder);
+  }
+
+  async update(id: number, updateMovieDto: any) {
+
+    let entity = await this.findOne(id, "id");
+    if (entity) {
+      return this.baseRepository.update(id, updateMovieDto);
+    }
+    else {
+      throw new NotFoundException(`Entity with id ${id} not found`);
+    }
   }
 
   remove(id: number) {

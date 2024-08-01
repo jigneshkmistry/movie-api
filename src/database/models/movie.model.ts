@@ -1,13 +1,14 @@
-import { Column, Model, Table } from 'sequelize-typescript';
+import { Column, Model, Table, Unique } from 'sequelize-typescript';
 
 @Table
 export class Movie extends Model {
   @Column({
-    primaryKey: true,
+  primaryKey: true,
     autoIncrement: true,
   })
   id: number;
 
+  @Unique 
   @Column
   title: string;
 

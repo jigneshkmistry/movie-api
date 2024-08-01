@@ -9,7 +9,7 @@ export class MovieController {
 
   @Post()
   create(@Body(ValidationPipe) createMovieDto: CreateMovieDto) {
-    return this.movieService.create(createMovieDto);
+    return this.movieService.createMovies(createMovieDto);
   }
 
   @Get()
@@ -26,7 +26,7 @@ export class MovieController {
 
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() updateMovieDto: UpdateMovieDto) {
-    return this.movieService.update(id, updateMovieDto);
+    return this.movieService.updateMovies(id, updateMovieDto);
   }
 
   @Delete(':id')

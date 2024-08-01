@@ -3,6 +3,7 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { Movie } from './models/movie.model';
 import { MovieRepository } from './repositories/movie.repository';
 import { Certificate } from './certificate'
+import { DatabaseService } from './database.service';
 
 @Module({
     imports: [
@@ -24,7 +25,7 @@ import { Certificate } from './certificate'
         }),
         SequelizeModule.forFeature([Movie]),
     ],
-    providers: [MovieRepository],
+    providers: [MovieRepository, DatabaseService],
     exports: [MovieRepository]
 })
 export class DatabaseModule { }
