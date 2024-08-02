@@ -4,16 +4,18 @@ import { Movie } from './models/movie.model';
 import { MovieRepository } from './repositories/movie.repository';
 import { Certificate } from './certificate'
 import { DatabaseService } from './database.service';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
     imports: [
+        ConfigModule.forRoot(),
         SequelizeModule.forRoot({
             dialect: 'postgres',
-            host: 'movie.cr2gkqqce18e.us-east-1.rds.amazonaws.com',
-            port: 5432,
-            username: 'postgres',
-            password: 'Football2024',
-            database: 'movie',
+            host: process.env.host,
+            port: +process.env.port,
+            username: process.env.username,
+            password: process.env.password,
+            database: process.env.database,
             autoLoadModels: true,
             synchronize: true, // Do not use this in production, use migrations instead
             ssl: true,
