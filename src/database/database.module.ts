@@ -17,7 +17,7 @@ import { ConfigModule } from '@nestjs/config';
             password: process.env.password || 'Football2024',
             database: process.env.database || 'movie',
             autoLoadModels: true,
-            synchronize: true, // Do not use this in production, use migrations instead
+            // synchronize: true, // Do not use this in production, use migrations instead
             ssl: true,
             dialectOptions: {
                 ssl: {
