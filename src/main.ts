@@ -9,6 +9,7 @@ async function bootstrap() {
     .setTitle('Movies API')
     .setDescription('API for managing movies')
     .setVersion('1.0')
+    .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT', in: 'header' }, 'access-token')
     // .addTag('movies')
     .build();
   const document = SwaggerModule.createDocument(app, config);

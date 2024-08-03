@@ -20,15 +20,15 @@ export class BaseRepository<M extends Model> {
         }
     }
 
-    async findAndCountAll(pageNo: number = 1, pageSize: number = 10, fields: string = "",sortOrder:string = ""): Promise<{ rows: M[], count: number }> {
+    async findAndCountAll(where: any = {}, pageNo: number = 1, pageSize: number = 10, fields: string = "", sortOrder: string = ""): Promise<{ rows: M[], count: number }> {
 
         const offset = pageNo === 1 ? 0 : (pageNo - 1) * pageSize;
         const field_list = fields.split(',');
         const sort_order: [string, 'ASC' | 'DESC'][] = sortOrder
             ? this.convertToSortOrder(sortOrder) : this.getDefautlSortOptions();
-        //const where: WhereOptions<M> = { id } as any;
+        const where_cond: WhereOptions<M> = where ? where as any : {};
         const options: FindOptions<M> = {
-            //where,
+            where : where_cond,
             attributes: field_list as any,
             offset : +offset,
             limit : +pageSize,
@@ -69,6 +69,10 @@ export class BaseRepository<M extends Model> {
             attributes: field_list as any,
             order: sort_order
         };
+
+        if (fields === "") {
+            delete options.attributes;
+        }
 
         return this.Model.findAll(options);
     }

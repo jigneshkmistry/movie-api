@@ -12,12 +12,12 @@ export abstract class BaseService<M extends sequelize.Model> {
     return this.baseRepository.create(createMovieDto)
   }
 
-  findAndCountAll(pageNo: number = 1, pageSize: number = 10, fields: string = "",order: string = "") {
-    return this.baseRepository.findAndCountAll(pageNo,pageSize,fields,order);
+  findAndCountAll(where: any = {}, pageNo: number = 1, pageSize: number = 10, fields: string = "", order: string = "") {
+    return this.baseRepository.findAndCountAll(where, pageNo, pageSize, fields, order);
   }
 
-  async findOne(id: number,fields = "") {
-    let entity = await this.baseRepository.findOne(id,fields);
+  async findOne(id: number, fields = "") {
+    let entity = await this.baseRepository.findOne(id, fields);
     if (entity) {
       return entity;
     }
@@ -42,7 +42,13 @@ export abstract class BaseService<M extends sequelize.Model> {
     }
   }
 
-  remove(id: number) {
-    return this.baseRepository.delete(id);
+  async remove(id: number) {
+    let entity = await this.findOne(id, "id");
+    if (entity) {
+      return this.baseRepository.delete(id);
+    }
+    else {
+      throw new NotFoundException(`Entity with id ${id} not found`);
+    }
   }
 }

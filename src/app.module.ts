@@ -6,7 +6,7 @@ import { CognitoAuthModule } from '@nestjs-cognito/auth';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true}),MovieModule, DatabaseModule, AuthModule, CognitoAuthModule.register({
+  imports: [ConfigModule.forRoot({ isGlobal: true }), AuthModule, MovieModule, DatabaseModule, CognitoAuthModule.register({
     jwtVerifier: {
       userPoolId: process.env.COGNITO_USER_POOL_ID,
       clientId: process.env.COGNITO_CLIENT_ID,

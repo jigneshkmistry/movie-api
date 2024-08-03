@@ -17,4 +17,8 @@ export class Movie extends Model {
 
   @Column
   poster: string;
+
+  @Column
+  sub: string;
+
 }

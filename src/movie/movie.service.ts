@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { MovieRepository } from 'src/database/repositories/movie.repository';
 import { BaseService } from './base.service';
 import { Movie } from 'src/database/models/movie.model';
@@ -11,6 +11,20 @@ export class MovieService extends BaseService<Movie> {
 
   constructor(private readonly movieRepository: MovieRepository) {
     super(movieRepository);
+  }
+
+  async getPagedMovies(sub: string, pageNo: number = 1, pageSize: number = 10, fields: string = "", order: string = "") {
+    return this.findAndCountAll({ sub }, pageNo, pageSize, fields, order);
+  }
+
+  async getMoviesDetails(id: number, sub: string, fields = "") {
+    let movie = await this.getByWhereClause({ id, sub }, fields);
+    if (movie && movie.length > 0) {
+      return movie[0];
+    }
+    else {
+      throw new NotFoundException(`Movie with id ${id} not found`);
+    }
   }
 
   async createMovies(createMovieDto: CreateMovieDto) {
@@ -29,17 +43,28 @@ export class MovieService extends BaseService<Movie> {
 
   async updateMovies(id: number, updateMovieDto: UpdateMovieDto) {
     let movies = await this.movieRepository.getByWhereClause({
-      title: {
-        [Op.iLike]: updateMovieDto.title
-      }
+      [Op.and]: [{
+        title: {
+          [Op.iLike]: updateMovieDto.title
+        }
+      }, {
+        id: {
+          [Op.ne]: id
+        }
+      }]
     }, "id,title");
+
     if (movies && movies.length > 0) {
       throw new BadRequestException(`Movie with title ${updateMovieDto.title} already exists`);
     }
-    else {
-      return this.movieRepository.update(id, updateMovieDto);
-    }
-  }
 
+    let movie = await this.findOne(id, "id");
+
+    if (!movie) {
+      throw new NotFoundException(`Movie with id ${id} not found`);
+    }
+
+    return this.movieRepository.update(id, updateMovieDto);
+  }
 
 }
