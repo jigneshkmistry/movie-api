@@ -19,7 +19,8 @@ export class AuthController {
 
   @Post('register')
   @ApiOperation({ summary: 'Registers a new user in AWS cognito' })
-  @ApiResponse({ status: 201, description: 'USer registered successfully' })
+  @ApiResponse({ status: 201, description: 'User registered successfully' })
+  @ApiResponse({ status: 400, description: 'User already exists' })
   async register(@Body() body: AuthRegisterDto) {
     const { username, password } = body;
     return this.authService.register(username, password, username);
