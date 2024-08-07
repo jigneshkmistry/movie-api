@@ -24,7 +24,7 @@ export class MovieController {
   @ApiQuery({ name: 'pageNo', required: false, description: 'page no. Default value 1', example: '1' })
   @ApiQuery({ name: 'pagesize', required: false, description: 'page size. Default value 10', example: '10' })
   @ApiQuery({ name: 'order', required: false, description: 'sort order for the response. Default value id desc', example: 'id desc' })
-  findAll(@Query('fields') fields: string, @Query('pageno') pageNo: number = 1,
+  findAll(@Query('fields') fields: string, @Query('pageNo') pageNo: number = 1,
     @Query('pagesize') pageSize: number = 10,
     @Query('order') order: string = "",
     @CognitoUser() cognitoJwtPayload: CognitoJwtPayload) {
